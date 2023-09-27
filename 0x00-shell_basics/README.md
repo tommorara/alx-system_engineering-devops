@@ -1,1 +1,1 @@
-I amost forgot this too!
+1. 0-current_working_directory: This script print the current workig directory
