@@ -1,4 +1,2 @@
 #/bin/bash
-filename='\*\\\\\'"Best School"'\\*\$\?\*\*\*\*\*:)'
-# Use echo and redirection to create the file and add the content
-echo 'Best School' > "$filename"
+echo "Best School" > '"\*\\'"Best School"\'\\*$\?\*\*\*\*\*:)'
