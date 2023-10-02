@@ -1,5 +1,4 @@
 #!/bin/bash
-cat /etc/passwd
 ##
 # User Database
 #
@@ -10,3 +9,4 @@ cat /etc/passwd
 # See the opendirectoryd(8) man page for additional information about
 # Open Directory.
 ##
+cat /etc/passwd
