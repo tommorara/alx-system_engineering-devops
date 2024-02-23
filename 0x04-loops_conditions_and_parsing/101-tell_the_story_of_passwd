@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# This script will tell the story of /etc/passwd using the while loop + IFS.
+
+# Reading the /etc/passwd file line by line using a while loop
+myfile="/etc/passwd"
+f1=""
+f2=""
+f3=""
+while IFS= read -r line
+do
+	f1="$(echo "$line" | cut -d":" -f1)"
+	f2="$(echo "$line" | cut -d":" -f4)"
+	f3="$(echo "$line" | cut -d":" -f6)"
+	f4="$(echo "$line" | cut -d":" -f7)"
+	f5="$(echo "$line" | cut -d":" -f3)"
+	f6="$(echo "$line" | cut -d":" -f2)"
+	f7="$(echo "$line" | cut -d":" -f5)"
+	# Displaying the story in the specified format
+	echo "The user ${f1} is part of the ${f2} gang, lives in ${f3} and rides ${f4}. ${f5}'s place is protected by the passcode ${f6}, more info about the user here: ${f7}"
+done < $myfile
