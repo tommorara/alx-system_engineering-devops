@@ -43,6 +43,7 @@ By the end of this project, you should be able to:
 
 - `scp`
 - `curl`
+- `curl`
 
 ## Instructions
 
