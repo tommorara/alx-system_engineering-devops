@@ -1,6 +1,5 @@
 Here is a template for a README file tailored for the "0x0A. Configuration Management" project:
 
----
 
 # 0x0A. Configuration Management
 
