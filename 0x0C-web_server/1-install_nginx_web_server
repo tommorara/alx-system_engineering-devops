@@ -1,48 +1,53 @@
-#!/bin/bash
-# Script to install and configure Nginx to serve "Hello World!" on Ubuntu
+#!/usr/bin/env bash
+# Script to install Nginx web server and configure a "Hello World" page
 
-# Exit on any error
-set -e
-
-# Update package list and install nginx
-apt-get update -y
-apt-get install nginx -y
-
-# Ensure Nginx is enabled and started
-if ! pgrep -x "nginx" > /dev/null; then
-    nginx
+# Ensure the script is run as root
+if [[ $EUID -ne 0 ]]; then
+  echo "ERROR: You need to be root to run this script" 1>&2
+  exit 1
 fi
 
-# Configure the default site to serve "Hello World!"
-cat > /var/www/html/index.html <<EOF
-Hello World!
-EOF
-
-# Ensure the default Nginx configuration is enabled and listening on port 80
-cat > /etc/nginx/sites-available/default <<EOF
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
-EOF
-
-# Reload Nginx to apply the configuration
-nginx -s reload
-
-# Verify that Nginx is running and serves the expected output
-if curl -s localhost | grep -q "Hello World!"; then
-    echo "Nginx is configured and serving 'Hello World!' successfully."
-else
-    echo "Nginx configuration failed. Check logs for details."
-    exit 1
+# Update the package list
+echo "Updating package list..."
+if ! apt-get update -y; then
+  echo "ERROR: Failed to update package list" 1>&2
+  exit 1
 fi
+
+# Install Nginx
+echo "Installing Nginx..."
+if ! apt-get install -y nginx; then
+  echo "ERROR: Failed to install Nginx" 1>&2
+  exit 1
+fi
+
+# Create the default "Hello World" page
+echo "Configuring Nginx..."
+if ! echo "Hello World!" > /var/www/html/index.html; then
+  echo "ERROR: Failed to create default page" 1>&2
+  exit 1
+fi
+
+# Start Nginx service
+echo "Starting Nginx service..."
+if ! service nginx start; then
+  echo "ERROR: Failed to start Nginx" 1>&2
+  exit 1
+fi
+
+# Ensure Nginx is enabled to start on boot
+echo "Enabling Nginx to start on boot..."
+if ! systemctl enable nginx; then
+  echo "WARNING: Failed to enable Nginx on boot. Proceeding..." 1>&2
+fi
+
+# Verify Nginx is running and serving the correct page
+echo "Verifying Nginx is serving the Hello World page..."
+if ! curl -s localhost | grep -q "Hello World!"; then
+  echo "ERROR: Nginx is not serving the correct content" 1>&2
+  exit 1
+fi
+
+echo "Nginx successfully installed and configured!"
+exit 0
 
