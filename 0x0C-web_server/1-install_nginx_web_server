@@ -1,23 +1,24 @@
-#!/usr/bin/env bash
-# script that installs the Nginx web server and configures the initial "Hello
-# world" page.
+#!/bin/bash
+# Script to install and configure Nginx to serve "Hello World!" on Ubuntu
 
-if [[ $EUID -ne 0 ]]; then
-  echo "ERROR: You need to be root" 1>&2
-  exit 1
-fi
+# Update package list and install nginx
+apt-get update -y
+apt-get install nginx -y
 
-# Update the package list and install Nginx
-apt-get update
-apt-get install -y nginx
+# Ensure Nginx is listening on port 80 (default configuration)
+sed -i 's/listen 80 default_server;/listen 80;/' /etc/nginx/sites-available/default
+sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:80;/' /etc/nginx/sites-available/default
 
-# Create the default "Hello world" page
+# Configure the root location to serve "Hello World!"
 echo "Hello World!" > /var/www/html/index.html
 
-# Start the Nginx service
-service nginx start
+# Reload nginx to apply changes without using systemctl
+nginx -s reload
 
-if [[ ! $? ]]; then
-	echo "ERROR: Failed to start Nginx" 1>&2
-        exit 1
+# Verify nginx is running (optional check)
+if curl -s localhost | grep -q "Hello World!"; then
+    echo "Nginx configured successfully!"
+else
+    echo "Nginx configuration failed."
 fi
+
