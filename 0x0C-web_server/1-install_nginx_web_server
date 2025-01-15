@@ -1,24 +1,48 @@
 #!/bin/bash
 # Script to install and configure Nginx to serve "Hello World!" on Ubuntu
 
+# Exit on any error
+set -e
+
 # Update package list and install nginx
 apt-get update -y
 apt-get install nginx -y
 
-# Ensure Nginx is listening on port 80 (default configuration)
-sed -i 's/listen 80 default_server;/listen 80;/' /etc/nginx/sites-available/default
-sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:80;/' /etc/nginx/sites-available/default
+# Ensure Nginx is enabled and started
+if ! pgrep -x "nginx" > /dev/null; then
+    nginx
+fi
 
-# Configure the root location to serve "Hello World!"
-echo "Hello World!" > /var/www/html/index.html
+# Configure the default site to serve "Hello World!"
+cat > /var/www/html/index.html <<EOF
+Hello World!
+EOF
 
-# Reload nginx to apply changes without using systemctl
+# Ensure the default Nginx configuration is enabled and listening on port 80
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index index.html;
+
+    server_name _;
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+
+# Reload Nginx to apply the configuration
 nginx -s reload
 
-# Verify nginx is running (optional check)
+# Verify that Nginx is running and serves the expected output
 if curl -s localhost | grep -q "Hello World!"; then
-    echo "Nginx configured successfully!"
+    echo "Nginx is configured and serving 'Hello World!' successfully."
 else
-    echo "Nginx configuration failed."
+    echo "Nginx configuration failed. Check logs for details."
+    exit 1
 fi
 
