@@ -1,32 +1,23 @@
 #!/usr/bin/env bash
+# script that installs the Nginx web server and configures the initial "Hello
+# world" page.
 
-# This script configures a new Ubuntu machine by installing Nginx, 
-# configuring it to listen on port 80, and serving a simple "Hello World" page.
+if [[ $EUID -ne 0 ]]; then
+  echo "ERROR: You need to be root" 1>&2
+  exit 1
+fi
 
-# Update package list and install Nginx
-echo -e "Updating and installing Nginx.\n"
-sudo apt-get update -y -qq && \
-sudo apt-get install nginx -y
+# Update the package list and install Nginx
+apt-get update
+apt-get install -y nginx
+
+# Create the default "Hello world" page
+echo "Hello World!" > /var/www/html/index.html
 
 # Start the Nginx service
-echo -e "\nSetting up some minor stuff.\n"
-sudo service nginx start
+service nginx start
 
-# Allow Nginx through the firewall
-sudo ufw allow 'Nginx HTTP'
-
-# Give the user ownership of website files for easy editing
-sudo chown -R "$USER":"$USER" /var/www/html
-sudo chmod -R 755 /var/www
-
-# Backup the default Nginx index file
-cp /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.bckp
-
-# Create a new index file with a "Hello World!" message
-echo -e "Hello World!" | dd status=none of=/var/www/html/index.nginx-debian.html
-
-# Restart Nginx to apply the changes
-sudo service nginx restart
-
-# Display completion message
-echo -e "\nCompleted. ✅\n"
+if [[ ! $? ]]; then
+	echo "ERROR: Failed to start Nginx" 1>&2
+        exit 1
+fi
