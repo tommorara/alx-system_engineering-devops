@@ -1,21 +1,37 @@
 #!/usr/bin/env bash
-# This script prints information about domains and subdomains using DNS queries.
+# Script that displays information about subdomains
 
-# Function to print information about a domain and subdomain
-print_domain_subdomain () {
-    # Use dig to retrieve DNS information for the given domain
-    dig "$1" | grep -A1 'ANSWER SECTION:' | sed -r "s/$1./$2/g" | awk -F" " ' NR==2 { print "The subdomain " $1 " is a " $4 " record and points to " $5 }'
+domain=$1
+subdomain=$2
+result=
+
+# Display the information about the result returned
+display_domain_info() {
+	record_type=$(echo "$result" | awk '{print $4}')
+	ip_addr=$(echo "$result" | awk '{print $5}')
+	echo -n "The subdomain $subdomain is a $record_type record and points "
+	echo "to $ip_addr"
 }
 
-# Check if the script is provided with exactly two command-line arguments
-if [ "$#" -eq 2 ]
-then
-    # If two arguments are provided, call the function with the specified subdomain and domain
-    print_domain_subdomain "$2.$1" "$2"
-else
-    # If not enough arguments are provided, print information for default subdomains
-    print_domain_subdomain "www.$1" "www"
-    print_domain_subdomain "lb-01.$1" "lb-01"
-    print_domain_subdomain "web-01.$1" "web-01"
-    print_domain_subdomain "web-02.$1" "web-02"
-fi
+# Retrieve information about the subdomains
+retrieve_domain_info () {
+	if [[ $domain = "" ]]; then
+		echo "Domain name missing."
+		exit 1
+	fi
+
+	if [[ $subdomain = "" ]]; then
+		known_sub_domains=("www" "lb-01" "web-01" "web-02")
+		for subdomain in "${known_sub_domains[@]}"; do
+			result=$(dig "$subdomain.$domain" | grep -A1 'ANSWER SECTION'\
+				| tail -1)
+			display_domain_info
+		done
+		exit
+	fi
+
+	result=$(dig "$subdomain.$domain" | grep -A1 'ANSWER SECTION' | tail -1)
+	display_domain_info
+}
+
+retrieve_domain_info
